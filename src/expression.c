@@ -103,16 +103,15 @@ int SNC_push(StrNumContainer *strNumContainer, char value) {
 }
 
 int SNC_reverse(StrNumContainer *strNumContainer) {
-	//FIXME realize inplace reverse in the feature
-	int bytesCountForAllocate = strNumContainer->currentPos - 1;
-	char *buff = (char *) malloc(bytesCountForAllocate * sizeof(char));
+	int bytesCountForAllocate = strNumContainer->currentPos;
+	int halfLen = bytesCountForAllocate / 2;
 
-	for(int i = bytesCountForAllocate, j = 0; i >= 0; i--, j++)
-		buff[j] = strNumContainer->container[i];
+	for(int i = 0, j = 1; i < halfLen; i++, j++) {
+		char tmp = strNumContainer->container[i];
+		strNumContainer->container[i] = strNumContainer->container[bytesCountForAllocate - j];
+		strNumContainer->container[bytesCountForAllocate - j] = tmp;
+	}
 
-	strcpy(strNumContainer->container, buff);
-
-	free(buff);
 	return 0;
 }
 
