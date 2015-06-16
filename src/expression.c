@@ -34,29 +34,8 @@ int isOperator(char exprChar) {
 }
 
 void parseNumbers(char *str, int opPos, StrNumContainer *leftStrNumContainer, StrNumContainer *rightStrNumContainer) {
-	//left node
-	for(int i = opPos-1; i >= 0 ; i--) {
-		if(isOperator(str[i])) {
-			break;
-		} else {
-			if(!(str[i] == ' '))
-				SNC_push(leftStrNumContainer, str[i]);
-		}
-	}
-
-	if(SNC_reverse(leftStrNumContainer))
-		fprintf(stderr, "Can not reverse leftStrNumContainer\n");
-
-	//right node
-	//NOTICE for right node SNC_reverse do not need
-	for(int i = opPos+1; i <= strlen(str) ; i++) {
-		if(isOperator(str[i])) {
-			break;
-		} else {
-			if(!(str[i] == ' '))
-				SNC_push(rightStrNumContainer, str[i]);
-		}
-	}
+	parseLeft(str, opPos, leftStrNumContainer);
+	parseRight(str, opPos, rightStrNumContainer);
 
 	int result = SNC_eval(leftStrNumContainer, rightStrNumContainer, str[opPos]);
 
@@ -127,6 +106,35 @@ int SNC_eval(StrNumContainer *left, StrNumContainer *right, char strOperation) {
 		result = binaryOperationCall(leftValue, rightValue, minus);
 
 	return result;
+}
+
+void parseLeft(char *str, int opPos, StrNumContainer *leftStrNumContainer) {
+	for(int i = opPos-1; i >= 0 ; i--) {
+		if(isOperator(str[i])) {
+			break;
+		} else {
+			if(!(str[i] == ' '))
+				SNC_push(leftStrNumContainer, str[i]);
+		}
+	}
+
+	if(SNC_reverse(leftStrNumContainer))
+		fprintf(stderr, "Can not reverse leftStrNumContainer\n");
+}
+
+void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer) {
+	for(int i = opPos+1; i <= strlen(str) ; i++) {
+			if(isOperator(str[i])) {
+				break;
+			} else {
+				if(!(str[i] == ' '))
+					SNC_push(rightStrNumContainer, str[i]);
+	//			else {
+	//				for(int j = 0; !isOperator(str[j+i]); j++)
+	//					printf("%c-",str[j+i]);
+	//			}
+			}
+		}
 }
 
 int plus(int left, int right) { return left + right; }

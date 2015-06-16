@@ -31,6 +31,8 @@ int minus(int left, int right);
 void buildAST(Expression *expr);
 int isOperator(char exprChar);
 void parseNumbers(char *str, int opPos, StrNumContainer *leftStrNumContainer, StrNumContainer *rightStrNumContainer);
+void parseLeft(char *str, int opPost, StrNumContainer *leftStrNumContainer);
+void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer);
 
 static const int DEFAULT_AllOCATION_SIZE = 3;
 
