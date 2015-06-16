@@ -9,18 +9,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 extern FILE *stderr;
 
 void buildAST(Expression *expr) {
-
+	Tree *tree = createTree();
 
 	for(int i = 0; expr->stringRepr[i]; i++) {
 		if(isOperator(expr->stringRepr[i])) {
-			StrNumContainer *leftStrNumContainer = newContainer();
-			StrNumContainer *rightStrNumContainer = newContainer();
+			Node *node = createNode();
+			T_insert(tree, node);
 
-			parseNumbers(expr->stringRepr, i, leftStrNumContainer, rightStrNumContainer);
+			parseNumbers(expr->stringRepr, i, node);
 		}
 	}
 }
@@ -33,19 +34,22 @@ int isOperator(char exprChar) {
 	return 0;
 }
 
-void parseNumbers(char *str, int opPos, StrNumContainer *leftStrNumContainer, StrNumContainer *rightStrNumContainer) {
-	parseLeft(str, opPos, leftStrNumContainer);
-	parseRight(str, opPos, rightStrNumContainer);
+void parseNumbers(char *str, int opPos, Node *node) {
+	parseLeft(str, opPos, node->left);
+	parseRight(str, opPos, node->right);
 
-	int result = SNC_eval(leftStrNumContainer, rightStrNumContainer, str[opPos]);
+
+	int result = SNC_eval(node->left, node->right, str[opPos]);
 
 	printf("%s = %d\n", str, result);
 
-	free(leftStrNumContainer->container);
-	free(leftStrNumContainer);
 
-	free(rightStrNumContainer->container);
-	free(rightStrNumContainer);
+	//need free nodes after all work with
+//	free(leftStrNumContainer->container);
+//	free(leftStrNumContainer);
+//
+//	free(rightStrNumContainer->container);
+//	free(rightStrNumContainer);
 }
 
 
@@ -61,9 +65,11 @@ void parseNumbers(char *str, int opPos, StrNumContainer *leftStrNumContainer, St
 
 StrNumContainer *newContainer() {
 	StrNumContainer *strContainer = malloc(sizeof(StrNumContainer *));
-	strContainer->container = (char *)malloc(DEFAULT_AllOCATION_SIZE * sizeof(char));
+	strContainer->container = (char *)malloc(DEFAULT_AllOCATION_SIZE * sizeof(char *));
 	strContainer->maxSize = DEFAULT_AllOCATION_SIZE;
 	strContainer->currentPos = 0;
+	strContainer->startPos = 0;
+	strContainer->endPos = 0;
 
 	return strContainer;
 }
@@ -126,15 +132,39 @@ void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer) {
 	for(int i = opPos+1; i <= strlen(str) ; i++) {
 			if(isOperator(str[i])) {
 				break;
+				//StrNumContainer *rrightStrNumContainer = newContainer();
+				//parseRight(str, i, rrightStrNumContainer);
+				//printf("%s\n", rrightStrNumContainer->container);
 			} else {
 				if(!(str[i] == ' '))
 					SNC_push(rightStrNumContainer, str[i]);
-	//			else {
-	//				for(int j = 0; !isOperator(str[j+i]); j++)
-	//					printf("%c-",str[j+i]);
-	//			}
 			}
 		}
+}
+
+Tree *createTree() {
+	Tree *tree = malloc(sizeof(Tree *));
+	tree->currentPos = 0;
+	tree->nodes = malloc(sizeof(Node *));
+
+	return tree;
+}
+
+void T_insert(Tree *tree, Node *nd) {
+	tree->nodes[tree->currentPos] = nd;
+}
+
+Node *createNode() {
+	Node *nd = malloc(sizeof(Node *));
+	nd->left = newContainer();
+	nd->right = newContainer();
+
+	return nd;
+}
+
+int N_compare(Node *nd1, Node *nd2) {
+	//need implement compare node positions
+	return 1;
 }
 
 int plus(int left, int right) { return left + right; }

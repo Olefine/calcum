@@ -11,6 +11,11 @@
 #include "cli.h"
 #include "expression.h"
 
+/*
+ * +, - => '1'
+ * *, / => '2'
+ */
+
 int main(int argc, char **argv) {
 	Configuration config;
 	config.confFlags = malloc(sizeof(char *));

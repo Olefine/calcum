@@ -19,9 +19,27 @@ typedef struct {
 	char *container;
 	int currentPos;
 	int maxSize;
+	int startPos;
+	int endPos;
 } StrNumContainer;
 
-static const char *posibleOperators[] = { "+", "-" };
+static const char *posibleOperators[] = { "+", "-", "*", "/" };
+
+typedef struct {
+	StrNumContainer *left;
+	StrNumContainer *right;
+} Node;
+
+typedef struct {
+	int currentPos;
+	Node **nodes;
+} Tree;
+
+Tree *createTree();
+void T_insert(Tree *tree, Node *nd);
+
+Node *createNode();
+int N_compare(Node *nd1, Node *nd2);
 
 typedef int (*BinaryOperation)(int a, int b);
 
@@ -30,7 +48,7 @@ int minus(int left, int right);
 
 void buildAST(Expression *expr);
 int isOperator(char exprChar);
-void parseNumbers(char *str, int opPos, StrNumContainer *leftStrNumContainer, StrNumContainer *rightStrNumContainer);
+void parseNumbers(char *str, int opPos, Node *node);
 void parseLeft(char *str, int opPost, StrNumContainer *leftStrNumContainer);
 void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer);
 
