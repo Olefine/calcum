@@ -28,6 +28,7 @@ static const char *posibleOperators[] = { "+", "-", "*", "/" };
 typedef struct {
 	StrNumContainer *left;
 	StrNumContainer *right;
+	char operator;
 } Node;
 
 typedef struct {
@@ -48,7 +49,7 @@ int minus(int left, int right);
 
 void buildAST(Expression *expr);
 int isOperator(char exprChar);
-void parseNumbers(char *str, int opPos, Node *node);
+Node *parseNumbers(char *str, int opPos);
 void parseLeft(char *str, int opPost, StrNumContainer *leftStrNumContainer);
 void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer);
 
@@ -60,5 +61,8 @@ StrNumContainer *newContainer();
 int SNC_push(StrNumContainer *strNumContainer, char value);
 int SNC_reverse(StrNumContainer *strNumContainer);
 int SNC_eval(StrNumContainer *left, StrNumContainer *right, char strOperation);
+
+int recursive_eval(Node **nodes, int counter, int max);
+BinaryOperation resolveOperation(char operator);
 
 #endif /* EXPRESSION_H_ */

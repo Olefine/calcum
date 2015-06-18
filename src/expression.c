@@ -18,12 +18,25 @@ void buildAST(Expression *expr) {
 
 	for(int i = 0; expr->stringRepr[i]; i++) {
 		if(isOperator(expr->stringRepr[i])) {
-			Node *node = createNode();
-			T_insert(tree, node);
-
-			parseNumbers(expr->stringRepr, i, node);
+			T_insert(tree, parseNumbers(expr->stringRepr, i));
 		}
 	}
+
+	int acum = 0;
+	acum = recursive_eval(tree->nodes, 0, tree->currentPos);
+
+	printf("%d\n", acum);
+}
+
+int recursive_eval(Node **nodes, i, max) {
+	if(i == max)
+		return 0;
+	else
+		if(i == 0)
+			return binaryOperationCall(SNC_eval(nodes[i]->left, nodes[i]->right, nodes[i]->operator), recursive_eval(nodes, i + 1, max), resolveOperation(nodes[i+1]->operator));
+		else {
+			return binaryOperationCall(atoi(nodes[i]->right->container), recursive_eval(nodes, i + 1, max), resolveOperation(nodes[i]->operator));
+		}
 }
 
 int isOperator(char exprChar) {
@@ -34,15 +47,15 @@ int isOperator(char exprChar) {
 	return 0;
 }
 
-void parseNumbers(char *str, int opPos, Node *node) {
+Node *parseNumbers(char *str, int opPos) {
+	Node *node = createNode();
 	parseLeft(str, opPos, node->left);
 	parseRight(str, opPos, node->right);
+	node->operator = str[opPos];
 
+	printf("%c\n", node->operator);
 
-	int result = SNC_eval(node->left, node->right, str[opPos]);
-
-	printf("%s = %d\n", str, result);
-
+	return node;
 
 	//need free nodes after all work with
 //	free(leftStrNumContainer->container);
@@ -64,7 +77,7 @@ void parseNumbers(char *str, int opPos, Node *node) {
  */
 
 StrNumContainer *newContainer() {
-	StrNumContainer *strContainer = malloc(sizeof(StrNumContainer *));
+	StrNumContainer *strContainer = malloc(sizeof(StrNumContainer *) + 4 * (sizeof(int)));
 	strContainer->container = (char *)malloc(DEFAULT_AllOCATION_SIZE * sizeof(char *));
 	strContainer->maxSize = DEFAULT_AllOCATION_SIZE;
 	strContainer->currentPos = 0;
@@ -115,59 +128,95 @@ int SNC_eval(StrNumContainer *left, StrNumContainer *right, char strOperation) {
 }
 
 void parseLeft(char *str, int opPos, StrNumContainer *leftStrNumContainer) {
-	for(int i = opPos-1; i >= 0 ; i--) {
+	int i;
+	int startPos = -1, endPos = -1;
+
+	for(i = opPos-1; i >= 0; i--) {
 		if(isOperator(str[i])) {
+			if(isspace(str[i-1]))
+				startPos = i + 2;
+			else
+				startPos = i + 1;
 			break;
-		} else {
-			if(!(str[i] == ' '))
-				SNC_push(leftStrNumContainer, str[i]);
+		} else if(!(str[i] == ' ')) {
+			if(endPos < 0)
+				endPos = i;
+			SNC_push(leftStrNumContainer, str[i]);
 		}
 	}
 
+	if(startPos < 0)
+		startPos = i+1;
+
 	if(SNC_reverse(leftStrNumContainer))
 		fprintf(stderr, "Can not reverse leftStrNumContainer\n");
+
+	leftStrNumContainer->startPos = startPos;
+	leftStrNumContainer->endPos = endPos;
 }
 
 void parseRight(char *str, int opPos, StrNumContainer *rightStrNumContainer) {
-	for(int i = opPos+1; i <= strlen(str) ; i++) {
-			if(isOperator(str[i])) {
-				break;
-				//StrNumContainer *rrightStrNumContainer = newContainer();
-				//parseRight(str, i, rrightStrNumContainer);
-				//printf("%s\n", rrightStrNumContainer->container);
-			} else {
-				if(!(str[i] == ' '))
-					SNC_push(rightStrNumContainer, str[i]);
-			}
+	int i;
+	int startPos = -1, endPos = -1;
+
+	for(i = opPos+1; i < strlen(str); i++) {
+		if(isOperator(str[i])) {
+			if(isspace(str[i-1]))
+				endPos = i - 2;
+			else
+				endPos = i - 1;
+			break;
+		} else {
+			if(!(str[i] == ' '))
+				if(startPos < 0)
+					startPos = i;
+				SNC_push(rightStrNumContainer, str[i]);
 		}
+	}
+
+	if(endPos < 0)
+		endPos = i-1;
+
+	rightStrNumContainer->startPos = startPos;
+	rightStrNumContainer->endPos = endPos;
 }
 
 Tree *createTree() {
 	Tree *tree = malloc(sizeof(Tree *));
 	tree->currentPos = 0;
-	tree->nodes = malloc(sizeof(Node *));
+	//TODO dynamicly resize nodes
+	tree->nodes = malloc(sizeof(Node *) + 20 * sizeof(Node *));
 
 	return tree;
 }
 
 void T_insert(Tree *tree, Node *nd) {
-	tree->nodes[tree->currentPos] = nd;
+	tree->nodes[tree->currentPos++] = nd;
 }
 
 Node *createNode() {
-	Node *nd = malloc(sizeof(Node *));
+	//TODO dynamicly allocate int for operators(number_of_operator * sizeof(char))
+	Node *nd = malloc(sizeof(Node *) + 10 * sizeof(char));
 	nd->left = newContainer();
 	nd->right = newContainer();
+	nd->operator = ' ';
 
 	return nd;
 }
 
 int N_compare(Node *nd1, Node *nd2) {
-	//need implement compare node positions
-	return 1;
+	return (nd1->right->endPos == nd2->left->endPos) && (nd1->right->startPos == nd2->left->startPos);
 }
 
 int plus(int left, int right) { return left + right; }
 int minus(int left, int right) { return left - right; }
 
 int binaryOperationCall(int left, int right, BinaryOperation fun) { return fun(left, right); }
+
+BinaryOperation resolveOperation(char operator) {
+	printf("op = %c\n", operator);
+	if(operator == '+')
+		return plus;
+	else
+		return minus;
+}
