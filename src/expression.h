@@ -38,16 +38,18 @@ typedef struct {
 
 Tree *createTree();
 void T_insert(Tree *tree, Node *nd);
+void T_free(Tree *tree);
 
 Node *createNode();
 int N_compare(Node *nd1, Node *nd2);
+void N_free(Node *node);
 
 typedef int (*BinaryOperation)(int a, int b);
 
 int plus(int left, int right);
 int minus(int left, int right);
 
-void buildAST(Expression *expr);
+int buildAndEvalAST(Expression *expr);
 int isOperator(char exprChar);
 Node *parseNumbers(char *str, int opPos);
 void parseLeft(char *str, int opPost, StrNumContainer *leftStrNumContainer);
@@ -61,8 +63,9 @@ StrNumContainer *newContainer();
 int SNC_push(StrNumContainer *strNumContainer, char value);
 int SNC_reverse(StrNumContainer *strNumContainer);
 int SNC_eval(StrNumContainer *left, StrNumContainer *right, char strOperation);
+void SNC_free(StrNumContainer *snc);
 
-int recursive_eval(Node **nodes, int counter, int max);
+int recursiveEvalAST(Node **nodes, int counter, int max);
 BinaryOperation resolveOperation(char operator);
 
 #endif /* EXPRESSION_H_ */

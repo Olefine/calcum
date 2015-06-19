@@ -13,7 +13,7 @@
 
 extern FILE *stderr;
 
-void buildAST(Expression *expr) {
+int buildAndEvalAST(Expression *expr) {
 	Tree *tree = createTree();
 
 	for(int i = 0; expr->stringRepr[i]; i++) {
@@ -22,21 +22,10 @@ void buildAST(Expression *expr) {
 		}
 	}
 
-	int acum = 0;
-	acum = recursive_eval(tree->nodes, 0, tree->currentPos);
+	int result = recursiveEvalAST(tree->nodes, 0, tree->currentPos);
 
-	printf("%d\n", acum);
-}
-
-int recursive_eval(Node **nodes, i, max) {
-	if(i == max)
-		return 0;
-	else
-		if(i == 0)
-			return binaryOperationCall(SNC_eval(nodes[i]->left, nodes[i]->right, nodes[i]->operator), recursive_eval(nodes, i + 1, max), resolveOperation(nodes[i+1]->operator));
-		else {
-			return binaryOperationCall(atoi(nodes[i]->right->container), recursive_eval(nodes, i + 1, max), resolveOperation(nodes[i]->operator));
-		}
+	T_free(tree);
+	return result;
 }
 
 int isOperator(char exprChar) {
@@ -53,16 +42,7 @@ Node *parseNumbers(char *str, int opPos) {
 	parseRight(str, opPos, node->right);
 	node->operator = str[opPos];
 
-	printf("%c\n", node->operator);
-
 	return node;
-
-	//need free nodes after all work with
-//	free(leftStrNumContainer->container);
-//	free(leftStrNumContainer);
-//
-//	free(rightStrNumContainer->container);
-//	free(rightStrNumContainer);
 }
 
 
@@ -72,7 +52,7 @@ Node *parseNumbers(char *str, int opPos) {
  * posibile functions for manage it:
  * 	  push(char* value)
  * 	  reverse(char *strNumContainer) // "003" -> "300"
- * 	  eval(char *reversedContainer) // "300" -> 300 with dynamic type resolver
+ * 	  eval(char *reversedContainer) // "300" -> 300
  *
  */
 
@@ -214,9 +194,39 @@ int minus(int left, int right) { return left - right; }
 int binaryOperationCall(int left, int right, BinaryOperation fun) { return fun(left, right); }
 
 BinaryOperation resolveOperation(char operator) {
-	printf("op = %c\n", operator);
 	if(operator == '+')
 		return plus;
 	else
 		return minus;
+}
+
+int recursiveEvalAST(Node **nodes, i, max) {
+	if(i == max)
+		return 0;
+	else
+		if(i == 0)
+			return binaryOperationCall(SNC_eval(nodes[i]->left, nodes[i]->right, nodes[i]->operator), recursiveEvalAST(nodes, i + 1, max), resolveOperation(nodes[i+1]->operator));
+		else {
+			return binaryOperationCall(atoi(nodes[i]->right->container), recursiveEvalAST(nodes, i + 1, max), resolveOperation(nodes[i]->operator));
+		}
+}
+
+void T_free(Tree *tree) {
+	for(int i = 0; i < tree->currentPos; i++) {
+		N_free(tree->nodes[i]);
+	}
+
+	free(tree->nodes);
+	free(tree);
+}
+
+void N_free(Node *node) {
+	SNC_free(node->left);
+	SNC_free(node->right);
+	free(node);
+}
+
+void SNC_free(StrNumContainer *snc) {
+	free(snc->container);
+	free(snc);
 }

@@ -24,7 +24,9 @@ int main(int argc, char **argv) {
 	expr.stringRepr;
 
 	parseCLIArgs(argc, argv, &config, &expr);
-	buildAST(&expr);
+	int result = buildAndEvalAST(&expr);
+
+	printf("result = %d\n", result);
 
 	return 0;
 }
